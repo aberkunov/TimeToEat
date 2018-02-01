@@ -1,0 +1,25 @@
+/* 
+  Localizable.strings
+  TimeToEat
+
+  Created by Alexander Berkunov on 04.05.17.
+  Copyright © 2017 MB. All rights reserved.
+*/
+
+
+// Common
+"OK" = "OK";
+
+// Settings
+"Settings" = "Settings";
+
+"glass" = "glass";
+"glasses" = "glasses";
+"ml" = "ml";
+"X glasses (Y liter)" = "%d glasses (%.1f liter)";
+
+"breakfast" = "Breakfast";
+"lunch" = "Lunch";
+"dinner" = "Dinner";
+"snack" = "Snack";
+

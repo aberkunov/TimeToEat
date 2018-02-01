@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="12141" systemVersion="16G29" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="DayMO" representedClassName="DayMO" syncable="YES" codeGenerationType="class">
+        <attribute name="actualWakeUp" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="plannedWakeUp" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <relationship name="eatings" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="EatingMO" inverseName="day" inverseEntity="EatingMO" syncable="YES"/>
+    </entity>
+    <entity name="EatingMO" representedClassName="EatingMO" syncable="YES" codeGenerationType="class">
+        <attribute name="actualDate" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="kind" attributeType="String" syncable="YES"/>
+        <attribute name="plannedDate" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="status" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="day" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DayMO" inverseName="eatings" inverseEntity="DayMO" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="EatingMO" positionX="-63" positionY="-18" width="128" height="120"/>
+        <element name="DayMO" positionX="-63" positionY="9" width="128" height="90"/>
+    </elements>
+</model>
