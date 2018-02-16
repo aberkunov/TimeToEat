@@ -12,7 +12,7 @@ import CoreData
 class TodayWorker {
     var settingsStorage = UserDefaultsSettingsStorage()
     private var dataBaseStorage = DataBaseStorage()
-    private let lastMealTimeHour = 19 // at 19:00
+    private let lastMealTimeHour = 20 // at 20:00
     
     // MARK: - Eatings
     func fetchEatings(for day: Day) -> [Eating] {
@@ -41,17 +41,46 @@ class TodayWorker {
         let settings = settingsStorage.item
         var eatings = [Eating]()
         
-        // 1. Set all the meals up
-        var (mealTime, secondsBetweenMeals) = mealTimeRange(within: settings.meals.count, baseDate: date)
+        // 0. Water
+        if settings.glassesPerDay > 0 { // add the very first glass, in 15 min after wake up
+            let firstGlass = Eating(kind: .water, planned: date.addingTimeInterval(60 * 15))
+            eatings.append(firstGlass)
+        }
+        var numberOfGlasses = settings.glassesPerDay - 1
+        
+        // 1. Set up all the meals
+        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: settings.meals.count, baseDate: date)
         for meal in settings.meals {
-            if let time = mealTime {
-                let eating = Eating(kind: .meal(meal), planned: time)
-                eatings.append(eating)
-                mealTime = time.addingTimeInterval(secondsBetweenMeals)
+            let eating = Eating(kind: .meal(meal), planned: nextMealTime)
+            eatings.append(eating)
+            nextMealTime.addTimeInterval(secondsBetweenMeals)
+            
+            // water - 20 minutes before every meal
+            if numberOfGlasses > 0 && settings.glassesPerDay - settings.meals.count < numberOfGlasses {
+                let waterTime = nextMealTime.addingTimeInterval(-20 * 60)
+                let water = Eating(kind: .water, planned: waterTime)
+                eatings.append(water)
+                numberOfGlasses -= 1
             }
         }
         
-        // 2. Water
+        // 2. Remaining water - find the biggest gaps between the eatings and insert there water
+        repeat {
+            // finds the intervals between eatings
+            let intervals: [TimeInterval] = eatings.enumerated().map { pair in
+                let previousEating = eatings[pair.offset - (pair.offset > 0 ? 1 : 0)]
+                return abs(pair.element.plannedDate.timeIntervalSince(previousEating.plannedDate))
+            }
+            // finds the max interval and its index
+            let max = intervals.dropFirst().enumerated().max { $0.element < $1.element }
+            // inserts a new glass of water into the middle of that max interval
+            if let offset = max?.offset, offset < eatings.count, let maxInterval = max?.element {
+                let waterTime = eatings[offset].plannedDate.addingTimeInterval(maxInterval / 2)
+                let water = Eating(kind: .water, planned: waterTime)
+                eatings.insert(water, at: offset + 1)
+            }
+            numberOfGlasses -= 1
+        } while numberOfGlasses > 0
         
         // save the eatings into the DB
         let context = dataBaseStorage.persistentContainer.newBackgroundContext()
@@ -74,12 +103,10 @@ class TodayWorker {
         let predicate = NSPredicate(format: "plannedDate IN %@", dates as [NSDate])
         let eatingsMO: [EatingMO] = EatingMO.all(in: context, matching: predicate).sorted { ($0.plannedDate ?? Date()) < ($1.plannedDate ?? Date()) }
         
-        var (mealTime, secondsBetweenMeals) = mealTimeRange(within: eatingsMO.count, baseDate: date)
+        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: eatingsMO.count, baseDate: date)
         for eatingMO in eatingsMO {
-            if let time = mealTime {
-                eatingMO.plannedDate = time
-                mealTime = time.addingTimeInterval(secondsBetweenMeals)
-            }
+            eatingMO.plannedDate = nextMealTime
+            nextMealTime.addTimeInterval(secondsBetweenMeals)
         }
         
         try? context.save()
@@ -156,13 +183,13 @@ class TodayWorker {
     }
     
     // Returns the very first meal time and interval in seconds between next meal
-    private func mealTimeRange(within mealsCount: Int, baseDate: Date) -> (Date?, TimeInterval) {
+    private func mealTimeRange(within mealsCount: Int, baseDate: Date) -> (Date, TimeInterval) {
         // The very first meal happens in one hour after wake up
         // Every next meal occurs in the same specific time interval until the last meal time
-        let startMealTime = Calendar.current.date(byAdding: .hour, value: 1, to: baseDate)
+        let startMealTime = Calendar.current.date(byAdding: .hour, value: 1, to: baseDate) ?? baseDate.addingTimeInterval(60 * 60)
         var secondsBetweenMeals: TimeInterval = 60 * 60 * 3 // 3h - default value in case Calendar can't calculate the last meal time
-        if let lastMealTime = Calendar.current.date(bySetting: .hour, value: lastMealTimeHour, of: baseDate), let mealTime = startMealTime, mealsCount > 0 {
-            secondsBetweenMeals = lastMealTime.timeIntervalSince(mealTime) / Double(mealsCount - 1)
+        if let lastMealTime = Calendar.current.date(bySetting: .hour, value: lastMealTimeHour, of: baseDate), mealsCount > 0 {
+            secondsBetweenMeals = lastMealTime.timeIntervalSince(startMealTime) / Double(mealsCount - 1)
         }
         return (startMealTime, secondsBetweenMeals)
     }
