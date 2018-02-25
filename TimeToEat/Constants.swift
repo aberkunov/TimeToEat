@@ -21,7 +21,7 @@ enum Constants {
         static let GlassesRange = Array(1...20)
         static let GlassVolumeRange = [100, 150, 200, 250, 300, 330, 350, 400, 500]
         
-        static let GlassesPerDayDefaultValue = 5
+        static let GlassesPerDayDefaultValue = 9
         static let GlassVolumeDefaultValue = Constants.Settings.GlassVolumeRange[2]
         static let MealsDefaultValue: [Meal] = [.breakfast, .snack, .lunch, .snack, .dinner]
     }

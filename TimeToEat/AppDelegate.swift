@@ -12,6 +12,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
+    let notificationService = NotificationService()
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -19,6 +20,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let settingsStorable = UserDefaultsSettingsStorage()
         settingsStorable.registerInitial()
+        
+        notificationService.requestAuthorization()
         
         return true
     }

@@ -23,6 +23,7 @@ protocol TodayDataStore {
 class TodayInteractor: TodayInteractorInterface, TodayDataStore {
     var presenter: TodayPresenterInterface?
     var worker = TodayWorker()
+    var notificationService = NotificationService()
     
     private(set) var today = Day()
     private(set) var eatings = [Eating]()
@@ -82,6 +83,7 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
     func updateSchedule(request: Today.Schedule.Request) {
         let today = worker.today()
         eatings = worker.updateEatings(for: today)
+        eatings.forEach { scheduleNotification(for: $0) }
         
         let response = Today.Schedule.Response(wakeUpDate: today.actualWakeUp, eatings: eatings)
         presenter?.presentSchedule(response: response)
@@ -99,6 +101,7 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
             if let firstEating = eatings.first {
                 firstEating.status = .active
                 worker.updateActive(eating: firstEating)
+                scheduleNotification(for: firstEating)
                 // presenter?.presentSchedule takes place in defer
             }
             return
@@ -108,6 +111,7 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
         fromEating.status = .done
         fromEating.actualDate = request.actualDate
         worker.updateActive(eating: fromEating)
+        cancelNotification(for: fromEating)
         
         let toIndex = fromIndex + 1
         if toIndex < eatings.count {
@@ -115,5 +119,15 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
             toEating.status = .active
             worker.updateActive(eating: toEating)
         }
+    }
+    
+    // MARK: - Local Notifications
+    func scheduleNotification(for eating: Eating) {
+        notificationService.scheduleNotification(at: eating.plannedDate, text: eating.kind.stringValue)
+    }
+    
+    func cancelNotification(for eating: Eating) {
+        let id = "Request" + DateFormatter.localizedString(from: eating.plannedDate, dateStyle: .short, timeStyle: .short)
+        notificationService.cancelNotification(identifier: id)
     }
 }

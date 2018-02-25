@@ -28,6 +28,7 @@
 		168AE9471ECCE3F800CB1194 /* MealsOrderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168AE9411ECCE3F800CB1194 /* MealsOrderViewController.swift */; };
 		169A92911FE9176B0077DB8F /* ActiveTodayCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169A92901FE9176B0077DB8F /* ActiveTodayCell.swift */; };
 		16CEB4891EBBCAE700E88A4D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 16CEB4831EBBCAE700E88A4D /* Localizable.strings */; };
+		16F797EA20434B000046C2B6 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F797E920434B000046C2B6 /* NotificationService.swift */; };
 		16FD147A1ECF7D2200F6E5AD /* AddMealViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FD14791ECF7D2200F6E5AD /* AddMealViewController.swift */; };
 		16FD14A81EDB483300F6E5AD /* DataBaseStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FD14A71EDB483300F6E5AD /* DataBaseStorage.swift */; };
 		16FD14AC1EDB6FFB00F6E5AD /* DataBase.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 16FD14A91EDB6F6900F6E5AD /* DataBase.xcdatamodeld */; };
@@ -86,6 +87,7 @@
 		16CEB4841EBBCAE700E88A4D /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		16CEB4871EBBCAE700E88A4D /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		16CEB48C1EBBCBE100E88A4D /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		16F797E920434B000046C2B6 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		16FD14791ECF7D2200F6E5AD /* AddMealViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddMealViewController.swift; sourceTree = "<group>"; };
 		16FD14A71EDB483300F6E5AD /* DataBaseStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataBaseStorage.swift; sourceTree = "<group>"; };
 		16FD14AA1EDB6F6900F6E5AD /* DataBase.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataBase.xcdatamodel; sourceTree = "<group>"; };
@@ -150,6 +152,7 @@
 				1615A3EC1EC5E0A300FEFC18 /* RegisteredStorable.swift */,
 				16509FB91EF2F35400A78ED7 /* UserDefaultsSettingsStorage.swift */,
 				16FD14A71EDB483300F6E5AD /* DataBaseStorage.swift */,
+				16F797E920434B000046C2B6 /* NotificationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -449,6 +452,7 @@
 				16FFD8E21EBB2F7000AC43FE /* CenteredTableViewCell.swift in Sources */,
 				16FD147A1ECF7D2200F6E5AD /* AddMealViewController.swift in Sources */,
 				1615A3ED1EC5E0A300FEFC18 /* RegisteredStorable.swift in Sources */,
+				16F797EA20434B000046C2B6 /* NotificationService.swift in Sources */,
 				160175A61F3CE213006A4B41 /* Types.swift in Sources */,
 				16FFD8F81EBB323300AC43FE /* TodayModels.swift in Sources */,
 				168AE9451ECCE3F800CB1194 /* MealsOrderPresenter.swift in Sources */,

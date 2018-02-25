@@ -12,7 +12,8 @@ import CoreData
 class TodayWorker {
     var settingsStorage = UserDefaultsSettingsStorage()
     private var dataBaseStorage = DataBaseStorage()
-    private let lastMealTimeHour = 20 // at 20:00
+    private let lastMealTimeHour = 20                               // at 20:00
+    private let firstGlassInterval: TimeInterval = 60 * 15          // 15 min
     
     // MARK: - Eatings
     func fetchEatings(for day: Day) -> [Eating] {
@@ -37,19 +38,19 @@ class TodayWorker {
     }
     
     func createEatings(for day: Day) -> [Eating] {
-        let date = day.actualWakeUp ?? day.plannedWakeUp
+        let wakeUpTime = day.actualWakeUp ?? day.plannedWakeUp
         let settings = settingsStorage.item
         var eatings = [Eating]()
         
         // 0. Water
         if settings.glassesPerDay > 0 { // add the very first glass, in 15 min after wake up
-            let firstGlass = Eating(kind: .water, planned: date.addingTimeInterval(60 * 15))
+            let firstGlass = Eating(kind: .water, planned: wakeUpTime.addingTimeInterval(firstGlassInterval))
             eatings.append(firstGlass)
         }
         var numberOfGlasses = settings.glassesPerDay - 1
         
         // 1. Set up all the meals
-        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: settings.meals.count, baseDate: date)
+        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: settings.meals.count, baseDate: wakeUpTime)
         for meal in settings.meals {
             let eating = Eating(kind: .meal(meal), planned: nextMealTime)
             eatings.append(eating)
@@ -95,22 +96,43 @@ class TodayWorker {
         return eatings
     }
     
+    //    func updateEatings(for day: Day) -> [Eating] {
+    //        let wakeUpTime = day.actualWakeUp ?? day.plannedWakeUp
+    //
+    //        let context = dataBaseStorage.persistentContainer.newBackgroundContext()
+    //        let dates = day.eatings.map { $0.plannedDate }
+    //        let predicate = NSPredicate(format: "plannedDate IN %@", dates as [NSDate])
+    //        let eatingsMO: [EatingMO] = EatingMO.all(in: context, matching: predicate).sorted { ($0.plannedDate ?? Date()) < ($1.plannedDate ?? Date()) }
+    //        let mealEatingsMO = eatingsMO.filter { e in
+    //            guard let kind = e.kind else { return false }
+    //            return Meal(rawValue: kind) != nil
+    //        }
+    //
+    //        if let firstWater = eatingsMO.first, let firstKind = firstWater.kind, firstKind == Eating.Kind.water.stringValue {
+    //            firstWater.plannedDate = wakeUpTime.addingTimeInterval(firstGlassInterval)
+    //        }
+    //
+    //        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: mealEatingsMO.count, baseDate: wakeUpTime)
+    //        for eatingMO in mealEatingsMO {
+    //            eatingMO.plannedDate = nextMealTime
+    //            nextMealTime.addTimeInterval(secondsBetweenMeals)
+    //        }
+    //
+    //        try? context.save()
+    //        return eatingsMO.map { $0.eating }
+    //    }
+    
+    /// The easiest way to update eatings is to delete old items and create new ones.
     func updateEatings(for day: Day) -> [Eating] {
-        let date = day.actualWakeUp ?? day.plannedWakeUp
-        
         let context = dataBaseStorage.persistentContainer.newBackgroundContext()
         let dates = day.eatings.map { $0.plannedDate }
         let predicate = NSPredicate(format: "plannedDate IN %@", dates as [NSDate])
         let eatingsMO: [EatingMO] = EatingMO.all(in: context, matching: predicate).sorted { ($0.plannedDate ?? Date()) < ($1.plannedDate ?? Date()) }
-        
-        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: eatingsMO.count, baseDate: date)
-        for eatingMO in eatingsMO {
-            eatingMO.plannedDate = nextMealTime
-            nextMealTime.addTimeInterval(secondsBetweenMeals)
-        }
-        
+        eatingsMO.forEach { context.delete($0) }
         try? context.save()
-        return eatingsMO.map { $0.eating }
+        
+        let eatings = createEatings(for: day)
+        return eatings
     }
     
     func updateActive(eating: Eating) {
