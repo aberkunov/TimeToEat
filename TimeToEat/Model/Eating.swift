@@ -22,9 +22,15 @@ class Eating {
     enum Status: Int16 {
         case unready
         case planned
+        case missed
         case active
         case done
     }
+    
+    var kind                = Kind.water        // either water or one of the eatings or drink or other (String)
+    var plannedDate         = Date()
+    var actualDate: Date?
+    var status              = Status.unready    //
     
     convenience init(kind: Kind, planned: Date) {
         self.init()
@@ -33,11 +39,6 @@ class Eating {
         self.plannedDate = planned
         self.status = .planned
     }
-    
-    var kind                = Kind.water        // either water or one of the eatings or drink or other (String)
-    var plannedDate         = Date()
-    var actualDate: Date?
-    var status              = Status.unready    //
 }
 
 extension Eating.Kind {

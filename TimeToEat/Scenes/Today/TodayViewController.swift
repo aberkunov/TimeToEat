@@ -18,7 +18,7 @@ class TodayViewController: UITableViewController, TodayViewControllerInterface {
     var interactor: (TodayInteractorInterface & TodayDataStore)?
     var router: (TodayRouting & TodayDataPassing)?
     
-    var wakeUpItem = Today.ViewModel.DisplayedItem(name: "I woke up!", plannedTime: "", actualTime: nil, image: nil, isActive: true, isDone: false)
+    var wakeUpItem = Today.ViewModel.DisplayedItem(name: "I woke up!", plannedTime: "", actualTime: nil, image: nil, isActive: true, isDone: false, isMissed: false)
     var displayedItems: [Today.ViewModel.DisplayedItem] = []
     
     // MARK: - Object lifecycle
@@ -55,6 +55,11 @@ class TodayViewController: UITableViewController, TodayViewControllerInterface {
         
         // configure UI elements
         configureSubviews()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        interactor?.updateScheduleStatuses(request: Today.ScheduleStatuses.Request())
     }
     
     // MARK: Routing
@@ -131,11 +136,14 @@ extension TodayViewController {
         cell.detailTextLabel?.text = item.actualTime ?? item.plannedTime
         cell.imageView?.image = item.image
         
-        // makes the cell 'inactive' or 'done'
+        // marks the cell as 'inactive' or 'done'
         cell.textLabel?.alpha = item.isDone ? 1.0 : 0.2
         cell.detailTextLabel?.alpha = item.isDone ? 1.0 : 0.2
         cell.imageView?.alpha = item.isDone ? 1.0 : 0.2
         cell.accessoryType = item.isDone ? .checkmark : .none
+        
+        // marks the cell as 'missed'
+        cell.contentView.backgroundColor = item.isMissed ? UIColor.red.withAlphaComponent(0.1) : .white
         
         return cell
     }
@@ -148,6 +156,7 @@ extension TodayViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
+        // The Wake Up item
         if indexPath.row == 0 && wakeUpItem.actualTime == nil {
             interactor?.updateWakeUpItem(request: Today.WakeUp.Request(date: Date()))
             interactor?.updateSchedule(request: Today.Schedule.Request())

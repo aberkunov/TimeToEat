@@ -12,8 +12,8 @@ import CoreData
 class TodayWorker {
     var settingsStorage = UserDefaultsSettingsStorage()
     private var dataBaseStorage = DataBaseStorage()
-    private let lastMealTimeHour = 20                               // at 20:00
-    private let firstGlassInterval: TimeInterval = 60 * 15          // 15 min
+    private let lastMealTimeHour = 20               // at 20:00
+    private let firstGlassInterval: TimeInterval = 60 * 2        // 15 min
     
     // MARK: - Eatings
     func fetchEatings(for day: Day) -> [Eating] {
@@ -37,6 +37,7 @@ class TodayWorker {
         return eatings
     }
     
+    /// Creates the eatings and sets their status according to wake up date
     func createEatings(for day: Day) -> [Eating] {
         let wakeUpTime = day.actualWakeUp ?? day.plannedWakeUp
         let settings = settingsStorage.item
@@ -96,33 +97,8 @@ class TodayWorker {
         return eatings
     }
     
-    //    func updateEatings(for day: Day) -> [Eating] {
-    //        let wakeUpTime = day.actualWakeUp ?? day.plannedWakeUp
-    //
-    //        let context = dataBaseStorage.persistentContainer.newBackgroundContext()
-    //        let dates = day.eatings.map { $0.plannedDate }
-    //        let predicate = NSPredicate(format: "plannedDate IN %@", dates as [NSDate])
-    //        let eatingsMO: [EatingMO] = EatingMO.all(in: context, matching: predicate).sorted { ($0.plannedDate ?? Date()) < ($1.plannedDate ?? Date()) }
-    //        let mealEatingsMO = eatingsMO.filter { e in
-    //            guard let kind = e.kind else { return false }
-    //            return Meal(rawValue: kind) != nil
-    //        }
-    //
-    //        if let firstWater = eatingsMO.first, let firstKind = firstWater.kind, firstKind == Eating.Kind.water.stringValue {
-    //            firstWater.plannedDate = wakeUpTime.addingTimeInterval(firstGlassInterval)
-    //        }
-    //
-    //        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: mealEatingsMO.count, baseDate: wakeUpTime)
-    //        for eatingMO in mealEatingsMO {
-    //            eatingMO.plannedDate = nextMealTime
-    //            nextMealTime.addTimeInterval(secondsBetweenMeals)
-    //        }
-    //
-    //        try? context.save()
-    //        return eatingsMO.map { $0.eating }
-    //    }
-    
     /// The easiest way to update eatings is to delete old items and create new ones.
+    /// It updates the eatings's planned date on the base of the wake up date
     func updateEatings(for day: Day) -> [Eating] {
         let context = dataBaseStorage.persistentContainer.newBackgroundContext()
         let dates = day.eatings.map { $0.plannedDate }
@@ -133,6 +109,36 @@ class TodayWorker {
         
         let eatings = createEatings(for: day)
         return eatings
+    }
+    
+    /// Updates only the statuses based on the current date
+    /// Should be called as soons as there is a time for an eating, e.g.
+    func updateTodayStatuses() -> [Eating] {
+        let context = dataBaseStorage.persistentContainer.newBackgroundContext()
+        let todayEatings = fetchEatings(for: today())
+        let now = Date()
+        
+        // find missed items
+        for eating in todayEatings where eating.plannedDate < now && eating.actualDate == nil {
+            eating.status = .missed
+            
+            // update the corresponding DB item
+            if let eatingMO = eating.existingManagedObject(inContext: context) {
+                eatingMO.status = eating.status.rawValue
+            }
+        }
+        // mark the first active/planned items as active
+        let firstPlanned = todayEatings.first { $0.status == .active || $0.status == .planned }
+        firstPlanned?.status = .active
+        if let firstPlannedMO = firstPlanned?.existingManagedObject(inContext: context) {
+            firstPlannedMO.status = Eating.Status.active.rawValue
+        }
+        
+        if context.hasChanges {
+            try? context.save()
+        }
+        
+        return todayEatings
     }
     
     func updateActive(eating: Eating) {

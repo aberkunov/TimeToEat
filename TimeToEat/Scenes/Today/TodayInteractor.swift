@@ -12,6 +12,7 @@ protocol TodayInteractorInterface {
     func updateWakeUpItem(request: Today.WakeUp.Request)
     func prepareSchedule(request: Today.Schedule.Request)
     func updateSchedule(request: Today.Schedule.Request)
+    func updateScheduleStatuses(request: Today.ScheduleStatuses.Request)
     func moveActiveItem(request: Today.MoveActive.Request)
 }
 
@@ -40,7 +41,10 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
             self?.updateWakeUpItem(request: Today.WakeUp.Request(date: nil))
             self?.prepareSchedule(request: Today.Schedule.Request())
         }
-        notificationObservers = [onDayChanged]
+        let onEnterForeground = NotificationCenter.default.addObserver(forName: .UIApplicationWillEnterForeground, object: nil, queue: .main) { [weak self] _ in
+            self?.updateScheduleStatuses(request: Today.ScheduleStatuses.Request())
+        }
+        notificationObservers = [onDayChanged, onEnterForeground]
     }
     
     deinit {
@@ -79,13 +83,22 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
         presenter?.presentSchedule(response: response)
     }
     
-    /// Updates the schedule with actual wake-up time
+    /// Updates the schedule with actual wake-up time and current time
     func updateSchedule(request: Today.Schedule.Request) {
         let today = worker.today()
         eatings = worker.updateEatings(for: today)
         eatings.forEach { scheduleNotification(for: $0) }
         
         let response = Today.Schedule.Response(wakeUpDate: today.actualWakeUp, eatings: eatings)
+        presenter?.presentSchedule(response: response)
+    }
+    
+    /// Updates the statuses of the current schedule
+    func updateScheduleStatuses(request: Today.ScheduleStatuses.Request) {
+        guard let actualWakeUp = today.actualWakeUp else { return }
+        
+        eatings = worker.updateTodayStatuses()
+        let response = Today.Schedule.Response(wakeUpDate: actualWakeUp, eatings: eatings)
         presenter?.presentSchedule(response: response)
     }
     
@@ -127,7 +140,7 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
     }
     
     func cancelNotification(for eating: Eating) {
-        let id = "Request" + DateFormatter.localizedString(from: eating.plannedDate, dateStyle: .short, timeStyle: .short)
+        let id = "Request" + DateFormatter.localizedString(from: eating.plannedDate, dateStyle: .medium, timeStyle: .medium)
         notificationService.cancelNotification(identifier: id)
     }
 }
