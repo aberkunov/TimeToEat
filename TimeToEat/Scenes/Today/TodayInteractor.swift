@@ -29,6 +29,7 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
     private(set) var today = Day()
     private(set) var eatings = [Eating]()
     private var notificationObservers: [NSObjectProtocol] = []
+    private var timer: Timer?
     
     init() {
         today = worker.today()
@@ -137,10 +138,18 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
     // MARK: - Local Notifications
     func scheduleNotification(for eating: Eating) {
         notificationService.scheduleNotification(at: eating.plannedDate, text: eating.kind.stringValue)
+        
+        let interval: TimeInterval = eating.plannedDate.timeIntervalSince(Date())
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] timer in
+            self?.updateScheduleStatuses(request: Today.ScheduleStatuses.Request())
+        }
     }
     
     func cancelNotification(for eating: Eating) {
         let id = "Request" + DateFormatter.localizedString(from: eating.plannedDate, dateStyle: .medium, timeStyle: .medium)
         notificationService.cancelNotification(identifier: id)
+        
+        timer?.invalidate()
+        timer = nil
     }
 }

@@ -21,7 +21,7 @@ class TodayPresenter: TodayPresenterInterface {
         let name = response.isAwakened ? "I woke up at" : "I woke up!"
         let timeText = response.isAwakened ? DateFormatter.localizedString(from: response.date, dateStyle: .none, timeStyle: .short) : String()
         let actualWakeUpTime = response.isAwakened ? timeText : nil
-        let viewModel = Today.ViewModel.DisplayedItem(name: name, plannedTime: timeText, actualTime: actualWakeUpTime, image:nil, isActive: true, isDone: false, isMissed: false)
+        let viewModel = Today.ViewModel.DisplayedItem(name: name, plannedTime: timeText, actualTime: actualWakeUpTime, image: nil, isActive: true, isDone: false, isMissed: false)
         viewController?.displayWakeUp(viewModel: viewModel)
     }
     

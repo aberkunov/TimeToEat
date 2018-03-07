@@ -57,11 +57,6 @@ class TodayViewController: UITableViewController, TodayViewControllerInterface {
         configureSubviews()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        interactor?.updateScheduleStatuses(request: Today.ScheduleStatuses.Request())
-    }
-    
     // MARK: Routing
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         router?.passDataToNextScene(segue: segue)
