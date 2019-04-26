@@ -47,7 +47,7 @@ class NotificationService: NSObject {
         let content = UNMutableNotificationContent()
         content.title = NSString.localizedUserNotificationString(forKey: "Time to eat %@", arguments: [text])
         content.body = NSString.localizedUserNotificationString(forKey: "Go go go!", arguments: nil)
-        content.sound = UNNotificationSound.default()
+        content.sound = UNNotificationSound.default
         content.categoryIdentifier = Constants.Category.TimeToEat
         
         let components = Calendar.current.dateComponents([.minute, .hour, .day, .month, .year], from: time)

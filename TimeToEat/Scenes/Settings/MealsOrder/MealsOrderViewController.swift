@@ -132,7 +132,7 @@ extension MealsOrderViewController {
         return true
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         guard editingStyle == .delete else { return } // only delete action is allowed
         
         interactor?.removeMeal(request: MealsOrder.Remove.Request(atIndex: indexPath.row))

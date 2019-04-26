@@ -30,7 +30,7 @@ class SettingsViewControllerTests: XCTestCase {
     func setupSettingsViewController() {
         let bundle = Bundle.main
         let storyboard = UIStoryboard(name: "Main", bundle: bundle)
-        sut = storyboard.instantiateViewController(withIdentifier: "SettingsViewController") as! SettingsViewController
+        sut = storyboard.instantiateViewController(withIdentifier: "SettingsViewController") as? SettingsViewController
     }
     
     func loadView() {

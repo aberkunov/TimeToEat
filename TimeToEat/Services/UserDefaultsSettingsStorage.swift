@@ -40,7 +40,7 @@ class UserDefaultsSettingsStorage: RegisteredStorable {
         // ordered meals
         let meals: [Meal]
         if let defaultMeals = userDefaults.array(forKey: Constants.UserDefaults.Settings.Meals) as? [String] {
-            meals = defaultMeals.flatMap { Meal(rawValue: $0) }
+            meals = defaultMeals.compactMap { Meal(rawValue: $0) }
         }
         else {
             meals = []

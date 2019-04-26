@@ -42,7 +42,7 @@ class TodayInteractor: TodayInteractorInterface, TodayDataStore {
             self?.updateWakeUpItem(request: Today.WakeUp.Request(date: nil))
             self?.prepareSchedule(request: Today.Schedule.Request())
         }
-        let onEnterForeground = NotificationCenter.default.addObserver(forName: .UIApplicationWillEnterForeground, object: nil, queue: .main) { [weak self] _ in
+        let onEnterForeground = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
             self?.updateScheduleStatuses(request: Today.ScheduleStatuses.Request())
         }
         notificationObservers = [onDayChanged, onEnterForeground]

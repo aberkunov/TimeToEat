@@ -33,7 +33,7 @@ class TodayWorker {
         }
         
         // convert NSManagedObject(s) to regular Eatings
-        let eatings = moEatings?.flatMap { $0.eating }.sorted { $0.plannedDate < $1.plannedDate } ?? []
+        let eatings = moEatings?.compactMap { $0.eating }.sorted { $0.plannedDate < $1.plannedDate } ?? []
         return eatings
     }
     
@@ -87,7 +87,7 @@ class TodayWorker {
         // save the eatings into the DB
         let context = dataBaseStorage.persistentContainer.newBackgroundContext()
         context.perform { [weak self] in
-            let eatingsMO = eatings.flatMap { $0.newManagedObject(inContext: context) }
+            let eatingsMO = eatings.compactMap { $0.newManagedObject(inContext: context) }
             if let todayMO = self?.fetchTodayMO(in: context) {
                 eatingsMO.forEach { ($0 as? EatingMO)?.day = todayMO }
             }
