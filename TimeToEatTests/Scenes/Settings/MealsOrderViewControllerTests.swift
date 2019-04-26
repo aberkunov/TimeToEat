@@ -30,7 +30,7 @@ class MealsOrderViewControllerTests: XCTestCase {
     func setupMealsOrderViewController() {
         let bundle = Bundle.main
         let storyboard = UIStoryboard(name: "Main", bundle: bundle)
-        sut = storyboard.instantiateViewController(withIdentifier: "MealsOrderViewController") as! MealsOrderViewController
+        sut = storyboard.instantiateViewController(withIdentifier: "MealsOrderViewController") as? MealsOrderViewController
     }
     
     func loadView() {
@@ -67,7 +67,7 @@ class MealsOrderViewControllerTests: XCTestCase {
         var deleteRowsCalled = false
         
         // MARK: Spied methods
-        override func deleteRows(at indexPaths: [IndexPath], with animation: UITableViewRowAnimation) {
+        override func deleteRows(at indexPaths: [IndexPath], with animation: UITableView.RowAnimation) {
             deleteRowsCalled = true
         }
     }

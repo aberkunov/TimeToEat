@@ -21,7 +21,7 @@ class TodayPresenter: TodayPresenterInterface {
         let name = response.isAwakened ? "I woke up at" : "I woke up!"
         let timeText = response.isAwakened ? DateFormatter.localizedString(from: response.date, dateStyle: .none, timeStyle: .short) : String()
         let actualWakeUpTime = response.isAwakened ? timeText : nil
-        let viewModel = Today.ViewModel.DisplayedItem(name: name, plannedTime: timeText, actualTime: actualWakeUpTime, image:nil, isActive: true, isDone: false)
+        let viewModel = Today.ViewModel.DisplayedItem(name: name, plannedTime: timeText, actualTime: actualWakeUpTime, image: nil, isActive: true, isDone: false, isMissed: false)
         viewController?.displayWakeUp(viewModel: viewModel)
     }
     
@@ -32,11 +32,13 @@ class TodayPresenter: TodayPresenterInterface {
             var actualTimeText: String?
             if let actualDate = eating.actualDate {
                 actualTimeText = "Finished at " + DateFormatter.localizedString(from: actualDate, dateStyle: .none, timeStyle: .short)
+                    + ". (Planned \(plannedTimeText))"
             }
             let image = eating.kind.image
             let isActive = eating.status == .active
             let isDone = eating.status == .done
-            let viewModel = Today.ViewModel.DisplayedItem(name: name, plannedTime: plannedTimeText, actualTime: actualTimeText, image: image, isActive: isActive, isDone: isDone)
+            let isMissed = eating.status == .missed
+            let viewModel = Today.ViewModel.DisplayedItem(name: name, plannedTime: plannedTimeText, actualTime: actualTimeText, image: image, isActive: isActive, isDone: isDone, isMissed: isMissed)
             return viewModel
         }
         viewController?.displaySchedule(viewModel: Today.ViewModel(displayedScheduleItems: allEatingModels))

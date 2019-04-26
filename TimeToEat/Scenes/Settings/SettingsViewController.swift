@@ -100,7 +100,7 @@ class SettingsViewController: UITableViewController, SettingsViewControllerInter
         // select rows in the picker
         let currentGlassCount = viewModel.numberOfGlasses
         let currentGlassVolume = viewModel.glassVolume
-        if let indexGlassCount = Constants.Settings.GlassesRange.index(of: currentGlassCount), let indexGlassVolume = Constants.Settings.GlassVolumeRange.index(of: currentGlassVolume) {
+        if let indexGlassCount = Constants.Settings.GlassesRange.firstIndex(of: currentGlassCount), let indexGlassVolume = Constants.Settings.GlassVolumeRange.firstIndex(of: currentGlassVolume) {
             pickerView.selectRow(indexGlassCount, inComponent: SettingsConstants.PickerGlassesCountComponent, animated: true)
             pickerView.selectRow(indexGlassVolume, inComponent: SettingsConstants.PickerGlassVolumeComponent, animated: true)
         }

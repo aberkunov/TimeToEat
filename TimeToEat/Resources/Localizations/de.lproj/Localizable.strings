@@ -6,4 +6,20 @@
   Copyright © 2017 MB. All rights reserved.
 */
 
+// Common
+"OK" = "OK";
+
+// Settings
 "Settings" = "Einstellungen";
+
+"glass" = "Glas";
+"glasses" = "Gläser";
+"ml" = "ml";
+"X glasses (Y liter)" = "%d Gläser (%.1f Liter)";
+
+"breakfast" = "Frühstück";
+"lunch" = "Mittagessen";
+"dinner" = "Abendessen";
+"snack" = "Snack";
+
+

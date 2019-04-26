@@ -12,7 +12,8 @@ import CoreData
 class TodayWorker {
     var settingsStorage = UserDefaultsSettingsStorage()
     private var dataBaseStorage = DataBaseStorage()
-    private let lastMealTimeHour = 20 // at 20:00
+    private let lastMealTimeHour = 20               // at 20:00
+    private let firstGlassInterval: TimeInterval = 60 * 2        // 15 min
     
     // MARK: - Eatings
     func fetchEatings(for day: Day) -> [Eating] {
@@ -32,24 +33,25 @@ class TodayWorker {
         }
         
         // convert NSManagedObject(s) to regular Eatings
-        let eatings = moEatings?.flatMap { $0.eating }.sorted { $0.plannedDate < $1.plannedDate } ?? []
+        let eatings = moEatings?.compactMap { $0.eating }.sorted { $0.plannedDate < $1.plannedDate } ?? []
         return eatings
     }
     
+    /// Creates the eatings and sets their status according to wake up date
     func createEatings(for day: Day) -> [Eating] {
-        let date = day.actualWakeUp ?? day.plannedWakeUp
+        let wakeUpTime = day.actualWakeUp ?? day.plannedWakeUp
         let settings = settingsStorage.item
         var eatings = [Eating]()
         
         // 0. Water
         if settings.glassesPerDay > 0 { // add the very first glass, in 15 min after wake up
-            let firstGlass = Eating(kind: .water, planned: date.addingTimeInterval(60 * 15))
+            let firstGlass = Eating(kind: .water, planned: wakeUpTime.addingTimeInterval(firstGlassInterval))
             eatings.append(firstGlass)
         }
         var numberOfGlasses = settings.glassesPerDay - 1
         
         // 1. Set up all the meals
-        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: settings.meals.count, baseDate: date)
+        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: settings.meals.count, baseDate: wakeUpTime)
         for meal in settings.meals {
             let eating = Eating(kind: .meal(meal), planned: nextMealTime)
             eatings.append(eating)
@@ -85,7 +87,7 @@ class TodayWorker {
         // save the eatings into the DB
         let context = dataBaseStorage.persistentContainer.newBackgroundContext()
         context.perform { [weak self] in
-            let eatingsMO = eatings.flatMap { $0.newManagedObject(inContext: context) }
+            let eatingsMO = eatings.compactMap { $0.newManagedObject(inContext: context) }
             if let todayMO = self?.fetchTodayMO(in: context) {
                 eatingsMO.forEach { ($0 as? EatingMO)?.day = todayMO }
             }
@@ -95,22 +97,48 @@ class TodayWorker {
         return eatings
     }
     
+    /// The easiest way to update eatings is to delete old items and create new ones.
+    /// It updates the eatings's planned date on the base of the wake up date
     func updateEatings(for day: Day) -> [Eating] {
-        let date = day.actualWakeUp ?? day.plannedWakeUp
-        
         let context = dataBaseStorage.persistentContainer.newBackgroundContext()
         let dates = day.eatings.map { $0.plannedDate }
         let predicate = NSPredicate(format: "plannedDate IN %@", dates as [NSDate])
         let eatingsMO: [EatingMO] = EatingMO.all(in: context, matching: predicate).sorted { ($0.plannedDate ?? Date()) < ($1.plannedDate ?? Date()) }
+        eatingsMO.forEach { context.delete($0) }
+        try? context.save()
         
-        var (nextMealTime, secondsBetweenMeals) = mealTimeRange(within: eatingsMO.count, baseDate: date)
-        for eatingMO in eatingsMO {
-            eatingMO.plannedDate = nextMealTime
-            nextMealTime.addTimeInterval(secondsBetweenMeals)
+        let eatings = createEatings(for: day)
+        return eatings
+    }
+    
+    /// Updates only the statuses based on the current date
+    /// Should be called as soons as there is a time for an eating, e.g.
+    func updateTodayStatuses() -> [Eating] {
+        let context = dataBaseStorage.persistentContainer.newBackgroundContext()
+        let todayEatings = fetchEatings(for: today())
+        let now = Date()
+        
+        // find missed items
+        for eating in todayEatings where eating.plannedDate < now && eating.actualDate == nil {
+            eating.status = .missed
+            
+            // update the corresponding DB item
+            if let eatingMO = eating.existingManagedObject(inContext: context) {
+                eatingMO.status = eating.status.rawValue
+            }
+        }
+        // mark the first active/planned items as active
+        let firstPlanned = todayEatings.first { $0.status == .active || $0.status == .planned }
+        firstPlanned?.status = .active
+        if let firstPlannedMO = firstPlanned?.existingManagedObject(inContext: context) {
+            firstPlannedMO.status = Eating.Status.active.rawValue
         }
         
-        try? context.save()
-        return eatingsMO.map { $0.eating }
+        if context.hasChanges {
+            try? context.save()
+        }
+        
+        return todayEatings
     }
     
     func updateActive(eating: Eating) {

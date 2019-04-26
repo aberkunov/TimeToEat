@@ -30,16 +30,22 @@ enum Today {
         // ViewModel will be Today.ViewModel
     }
     
+    enum ScheduleStatuses {
+        struct Request {
+        }
+        struct Response {
+        }
+        // ViewModel will be Today.ViewModel
+    }
+    
     enum MoveActive {
         struct Request {
             let fromIndex: Int?
             let actualDate: Date?
         }
         struct Response {
-            
         }
         struct ViewModel {
-            
         }
     }
     
@@ -51,6 +57,7 @@ enum Today {
             let image: UIImage?
             let isActive: Bool
             let isDone: Bool
+            let isMissed: Bool
         }
         let displayedScheduleItems: [DisplayedItem]
     }

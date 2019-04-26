@@ -6,4 +6,19 @@
   Copyright © 2017 MB. All rights reserved.
 */
 
-"Settings" = "Настройки";
+// Common
+"OK" = "OK";
+
+// Settings
+"Settings" = "Haстройки";
+
+"glass" = "стакан";
+"glasses" = "стакана";
+"ml" = "ml";
+"X glasses (Y liter)" = "%d стакан (%.1f литра)";
+
+"breakfast" = "Завтрак";
+"lunch" = "Обед";
+"dinner" = "Ужин";
+"snack" = "Перекус";
+

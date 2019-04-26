@@ -6,7 +6,6 @@
   Copyright © 2017 MB. All rights reserved.
 */
 
-
 // Common
 "OK" = "OK";
 
@@ -22,4 +21,3 @@
 "lunch" = "Lunch";
 "dinner" = "Dinner";
 "snack" = "Snack";
-
